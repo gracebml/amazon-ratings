@@ -164,6 +164,7 @@ amazon-ratings/
 │   └── 03_modeling.ipynb               # Pure NumPy MF training/evaluation
 ├── src/
 │   ├── data_preprocessing.py           # Hàm load/validate/save dữ liệu
+|   ├── visualization.py                # Visualize các phân tích từ trả lời cho các câu hỏi
 │   └── models.py                       # PureNumpyMF + utilities (GroupSplit, metrics)
 ├── requirements.txt
 └── README.md
