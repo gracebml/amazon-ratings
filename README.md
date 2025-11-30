@@ -12,7 +12,7 @@ Feature-enriched collaborative filtering pipeline for the Amazon Beauty ratings 
 - [4. Dataset](#4-dataset)
 - [5. Method](#5-method)
   - [5.1 Quy trình xử lý dữ liệu](#51-quy-trình-xử-lý-dữ-liệu)
-  - [5.2 Thuật toán (Matrix Factorization)](#52-thuật-toán-matrix-factorization)
+  - [5.2 Phương pháp: Collaborative Filtering Matrix Factorization](#52-phương-pháp-Collaborative-Filtering-Matrix-Factorization)
   - [5.3 Triển khai thuần NumPy](#53-triển-khai-thuần-numpy)
 - [6. Installation \& Setup](#6-installation--setup)
 - [7. Usage](#7-usage)
@@ -141,8 +141,8 @@ Yêu cầu thêm:
 
 | Split | RMSE | MAE | Ghi chú |
 |-------|------|-----|---------|
-| Train | **0.976** | **0.566** | Mô hình fit tốt dữ liệu lịch sử |
-| Test  | **1.314** | **1.052** | Có overfitting nhưng chấp nhận được với dữ liệu thưa |
+| Train | **1.13** | **0.6** | Mô hình fit tốt dữ liệu lịch sử |
+| Test  | **1.314** | **1.052** | Có overfitting nhẹ nhưng chấp nhận được với dữ liệu thưa |
 
 - **Trực quan hóa**: Notebook 01 cung cấp histogram rating, phân bố hoạt động user/item, heatmap tương quan feature.
 - **Phân tích**:
