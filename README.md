@@ -94,7 +94,7 @@ $$\mathcal{L}= \sum_{(u,i)} (r_{ui} - \hat{r}_{ui})^2+ \lambda \left(\|\mathbf{p
 | **$\( \|\cdot\|_2^2 \)$** | L2 norm squared – hình phạt độ lớn tham số, giúp mô hình ổn định. |
 
 ### 5.3 Triển khai thuần NumPy
-Một số kỹ thuật chính:\
+Một số kỹ thuật chính:
 
 - ID encoding bằng `np.unique` -> ánh xạ `UserId/ProductId` sang chỉ số.
 - Latent factors & bias lưu dạng `np.float64` để tránh overflow.
