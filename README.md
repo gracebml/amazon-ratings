@@ -77,12 +77,7 @@ $$
 $$
 
 Loss function:
-$$
-\mathcal{L} = \sum_{(u,i)} (r_{ui} - \hat{r}_{ui})^2 
-+ \lambda \left( \| \mathbf{p}_u \|_2^2 
-+ \| \mathbf{q}_i \|_2^2 
-+ \| \mathbf{w}_u \|_2^2 
-+ \| \mathbf{w}_i \|_2^2 \right)
+$$ \mathcal{L} = \sum_{(u,i)} (r_{ui} - \hat{r}_{ui})^2  + \lambda \left( \| \mathbf{p}_u \|_2^2  + \| \mathbf{q}_i \|_2^2 + \| \mathbf{w}_u \|_2^2  + \| \mathbf{w}_i \|_2^2 \right)
 $$
 
 ### 5.3 Triển khai thuần NumPy
