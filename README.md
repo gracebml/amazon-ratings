@@ -94,14 +94,15 @@ $$\mathcal{L}= \sum_{(u,i)} (r_{ui} - \hat{r}_{ui})^2+ \lambda \left(\|\mathbf{p
 | **$\( \|\cdot\|_2^2 \)$** | L2 norm squared – hình phạt độ lớn tham số, giúp mô hình ổn định. |
 
 ### 5.3 Triển khai thuần NumPy
+Một số kỹ thuật chính:\
 
-- ID encoding bằng `np.unique` → ánh xạ `UserId/ProductId` sang chỉ số.
+- ID encoding bằng `np.unique` -> ánh xạ `UserId/ProductId` sang chỉ số.
 - Latent factors & bias lưu dạng `np.float64` để tránh overflow.
 - SGD vectorized:
   - `np.add.at` để accumulate gradient.
   - Glorot initialization cho `user_factors`, `item_factors`.
   - Gradient clipping + learning-rate scheduling (`lr=0.001` default).
-- Feature terms (`user_feat_matrix @ user_feat_weights`) xử lý hoàn toàn bằng broadcasting, không vòng lặp Python.
+- Feature terms (`user_feat_matrix @ user_feat_weights`).
 
 ---
 
@@ -146,9 +147,8 @@ Yêu cầu thêm:
 - **Trực quan hóa**: Notebook 01 cung cấp histogram rating, phân bố hoạt động user/item, heatmap tương quan feature.
 - **Phân tích**:
   - Feature behavior giúp giảm cold-start so với baseline MF thuần.
-  - Overfitting đến từ sparsity cao và việc thiếu signal tiêu cực → cần regularization mạnh hơn / implicit feedback.
-  - Khuyến nghị Top-10 vẫn ưu tiên sản phẩm phổ biến (popularity bias), cần thêm diversification.
-
+  - Overfitting đến từ sparsity cao và việc thiếu signal tiêu cực -> cần regularization mạnh hơn / implicit feedback.
+    
 ---
 
 ## 9. Project Structure
