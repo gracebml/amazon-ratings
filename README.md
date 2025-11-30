@@ -68,7 +68,7 @@ Feature-enriched collaborative filtering pipeline for the Amazon Beauty ratings 
    - `GroupShuffleSplit` tránh user leakage.
    - Train Pure NumPy MF với feature enrichment.
 
-### 5.2 Thuật toán (Matrix Factorization)
+### 5.2 Phương pháp: Collaborative Filtering Matrix Factorization 
 
 **Mô hình dự đoán:**\
 $$\hat{r}_{ui} = \mu + b_u + b_i+\mathbf{p}_u^\top \mathbf{q}_i+\mathbf{f}_u^\top \mathbf{w}_u+ \mathbf{f}_i^\top \mathbf{w}_i$$
@@ -76,15 +76,33 @@ $$\hat{r}_{ui} = \mu + b_u + b_i+\mathbf{p}_u^\top \mathbf{q}_i+\mathbf{f}_u^\to
 **Loss function:**\
 $$\mathcal{L}= \sum_{(u,i)} (r_{ui} - \hat{r}_{ui})^2+ \lambda \left(\|\mathbf{p}_u\|_2^2 +\|\mathbf{q}_i\|_2^2 +\|\mathbf{w}_u\|_2^2 +\|\mathbf{w}_i\|_2^2\right)$$
 
-### 5.3 Triển khai thuần NumPy
+**Trong đó:**
+| Ký hiệu | Ý nghĩa |
+|--------|---------|
+| **$\( r_{ui} \)$** | Rating thật mà user \(u\) dành cho item \(i\). |
+| **$\( \hat{r}_{ui} \)$** | Rating dự đoán của mô hình. |
+| **$\( \mu \)$** | Global mean – trung bình rating của toàn bộ dataset. |
+| **$\( b_u \)$** | User bias – xu hướng người dùng chấm cao/thấp hơn mức trung bình. |
+| **$\( b_i \)$** | Item bias – “độ dễ được chấm cao/thấp” của item. |
+| **$\( \mathbf{p}_u \)$** | User latent vector (k-chiều) – biểu diễn sở thích ẩn của user. |
+| **$\( \mathbf{q}_i \)$** | Item latent vector (k-chiều) – mô tả đặc tính tiềm ẩn của item. |
+| **$\( \mathbf{f}_u \)$** | User feature vector – đặc trưng của user (nếu có). |
+| **$\( \mathbf{w}_u \)$** | Trọng số cho user features. |
+| **$\( \mathbf{f}_i \)$** | Item feature vector – đặc trưng của item (nếu có). |
+| **$\( \mathbf{w}_i \)$** | Trọng số cho item features. |
+| **$\( \lambda \)$** | Hệ số regularization – giảm overfitting bằng cách phạt norm của các vector. |
+| **$\( \|\cdot\|_2^2 \)$** | L2 norm squared – hình phạt độ lớn tham số, giúp mô hình ổn định. |
 
-- ID encoding bằng `np.unique` → ánh xạ `UserId/ProductId` sang chỉ số.
+### 5.3 Triển khai thuần NumPy
+Một số kỹ thuật chính:
+
+- ID encoding bằng `np.unique` -> ánh xạ `UserId/ProductId` sang chỉ số.
 - Latent factors & bias lưu dạng `np.float64` để tránh overflow.
 - SGD vectorized:
   - `np.add.at` để accumulate gradient.
   - Glorot initialization cho `user_factors`, `item_factors`.
   - Gradient clipping + learning-rate scheduling (`lr=0.001` default).
-- Feature terms (`user_feat_matrix @ user_feat_weights`) xử lý hoàn toàn bằng broadcasting, không vòng lặp Python.
+- Feature terms (`user_feat_matrix @ user_feat_weights`).
 
 ---
 
@@ -117,8 +135,6 @@ Yêu cầu thêm:
    - `jupyter lab notebooks/03_modeling.ipynb`
    - Train Pure NumPy MF, đo RMSE/MAE, xem top-N recommendation.
 
-> Tip: Nếu cần chạy headless, dùng `python -m nbconvert --execute --to notebook notebooks/0X_*.ipynb`.
-
 ---
 
 ## 8. Results
@@ -131,9 +147,8 @@ Yêu cầu thêm:
 - **Trực quan hóa**: Notebook 01 cung cấp histogram rating, phân bố hoạt động user/item, heatmap tương quan feature.
 - **Phân tích**:
   - Feature behavior giúp giảm cold-start so với baseline MF thuần.
-  - Overfitting đến từ sparsity cao và việc thiếu signal tiêu cực → cần regularization mạnh hơn / implicit feedback.
-  - Khuyến nghị Top-10 vẫn ưu tiên sản phẩm phổ biến (popularity bias), cần thêm diversification.
-
+  - Overfitting đến từ sparsity cao và việc thiếu signal tiêu cực -> cần regularization mạnh hơn / implicit feedback.
+    
 ---
 
 ## 9. Project Structure
@@ -149,6 +164,7 @@ amazon-ratings/
 │   └── 03_modeling.ipynb               # Pure NumPy MF training/evaluation
 ├── src/
 │   ├── data_preprocessing.py           # Hàm load/validate/save dữ liệu
+|   ├── visualization.py                # Visualize các phân tích từ trả lời cho các câu hỏi
 │   └── models.py                       # PureNumpyMF + utilities (GroupSplit, metrics)
 ├── requirements.txt
 └── README.md
