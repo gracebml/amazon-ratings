@@ -68,13 +68,30 @@ Feature-enriched collaborative filtering pipeline for the Amazon Beauty ratings 
    - `GroupShuffleSplit` tránh user leakage.
    - Train Pure NumPy MF với feature enrichment.
 
-### 5.2 Thuật toán (Matrix Factorization)
+### 5.2 Phương pháp: Collaborative Filtering Matrix Factorization 
 
 **Mô hình dự đoán:**\
 $$\hat{r}_{ui} = \mu + b_u + b_i+\mathbf{p}_u^\top \mathbf{q}_i+\mathbf{f}_u^\top \mathbf{w}_u+ \mathbf{f}_i^\top \mathbf{w}_i$$
 
 **Loss function:**\
 $$\mathcal{L}= \sum_{(u,i)} (r_{ui} - \hat{r}_{ui})^2+ \lambda \left(\|\mathbf{p}_u\|_2^2 +\|\mathbf{q}_i\|_2^2 +\|\mathbf{w}_u\|_2^2 +\|\mathbf{w}_i\|_2^2\right)$$
+
+**Trong đó:**
+| Ký hiệu | Ý nghĩa |
+|--------|---------|
+| **\( r_{ui} \)** | Rating thật mà user \(u\) dành cho item \(i\). |
+| **\( \hat{r}_{ui} \)** | Rating dự đoán của mô hình. |
+| **\( \mu \)** | Global mean – trung bình rating của toàn bộ dataset. |
+| **\( b_u \)** | User bias – xu hướng người dùng chấm cao/thấp hơn mức trung bình. |
+| **\( b_i \)** | Item bias – “độ dễ được chấm cao/thấp” của item. |
+| **\( \mathbf{p}_u \)** | User latent vector (k-chiều) – biểu diễn sở thích ẩn của user. |
+| **\( \mathbf{q}_i \)** | Item latent vector (k-chiều) – mô tả đặc tính tiềm ẩn của item. |
+| **\( \mathbf{f}_u \)** | User feature vector – đặc trưng của user (nếu có). |
+| **\( \mathbf{w}_u \)** | Trọng số cho user features. |
+| **\( \mathbf{f}_i \)** | Item feature vector – đặc trưng của item (nếu có). |
+| **\( \mathbf{w}_i \)** | Trọng số cho item features. |
+| **\( \lambda \)** | Hệ số regularization – giảm overfitting bằng cách phạt norm của các vector. |
+| **\( \|\cdot\|_2^2 \)** | L2 norm squared – hình phạt độ lớn tham số, giúp mô hình ổn định. |
 
 ### 5.3 Triển khai thuần NumPy
 
@@ -116,8 +133,6 @@ Yêu cầu thêm:
 3. **Notebook 03 – Modeling & Evaluation**
    - `jupyter lab notebooks/03_modeling.ipynb`
    - Train Pure NumPy MF, đo RMSE/MAE, xem top-N recommendation.
-
-> Tip: Nếu cần chạy headless, dùng `python -m nbconvert --execute --to notebook notebooks/0X_*.ipynb`.
 
 ---
 
