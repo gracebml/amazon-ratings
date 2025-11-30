@@ -70,17 +70,11 @@ Feature-enriched collaborative filtering pipeline for the Amazon Beauty ratings 
 
 ### 5.2 Thuật toán (Matrix Factorization)
 
-Mô hình dự đoán:
+**Mô hình dự đoán:**\
+$$\hat{r}_{ui} = \mu + b_u + b_i+\mathbf{p}_u^\top \mathbf{q}_i+\mathbf{f}_u^\top \mathbf{w}_u+ \mathbf{f}_i^\top \mathbf{w}_i$$
 
-\\[
-\\hat{r}_{ui} = \\mu + b_u + b_i + \\mathbf{p}_u^\\top \\mathbf{q}_i + \\mathbf{f}_u^\\top \\mathbf{w}_u + \\mathbf{f}_i^\\top \\mathbf{w}_i
-\\]
-
-Loss function:
-
-\\[
-\\mathcal{L} = \\sum_{(u,i)} (r_{ui} - \\hat{r}_{ui})^2 + \\lambda (\\|\\mathbf{p}_u\\|_2^2 + \\|\\mathbf{q}_i\\|_2^2 + \\|\\mathbf{w}_u\\|_2^2 + \\|\\mathbf{w}_i\\|_2^2)
-\\]
+**Loss function:**\
+$$\mathcal{L}= \sum_{(u,i)} (r_{ui} - \hat{r}_{ui})^2+ \lambda \left(\|\mathbf{p}_u\|_2^2 +\|\mathbf{q}_i\|_2^2 +\|\mathbf{w}_u\|_2^2 +\|\mathbf{w}_i\|_2^2\right)$$
 
 ### 5.3 Triển khai thuần NumPy
 
@@ -97,7 +91,7 @@ Loss function:
 ## 6. Installation & Setup
 
 ```bash
-git clone https://github.com/<your-org>/amazon-ratings-numpy.git
+git clone https://github.com/gracebml/amazon-ratings.git
 cd amazon-ratings
 python -m venv .venv
 .venv\\Scripts\\activate         # hoặc source .venv/bin/activate trên Linux/Mac
