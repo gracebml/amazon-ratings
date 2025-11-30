@@ -97,7 +97,7 @@ Loss function:
 ## 6. Installation & Setup
 
 ```bash
-git clone https://github.com/<your-org>/amazon-ratings-numpy.git
+git clone https://github.com/gracebml/amazon-ratings.git
 cd amazon-ratings
 python -m venv .venv
 .venv\\Scripts\\activate         # hoặc source .venv/bin/activate trên Linux/Mac
