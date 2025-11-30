@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 import os
 
 def load_data(file_path: str) -> np.ndarray:
@@ -45,37 +45,13 @@ def check_missing_values(data: np.ndarray) -> Tuple[int, Dict[str, int]]:
                 np.sum((col_data == '') | (col_data == b''))
         
         missing_counts[col_name] = int(count)
-        status = "✗ THIẾU" if count > 0 else "✓ Đầy đủ"
+        status = " THIẾU" if count > 0 else " Đầy đủ"
         print(f"  {col_name:15s}: {status:12s} ({count:,} missing)")
     
     # Broadcasting sum
     total_missing = np.sum(list(missing_counts.values()))
     print(f"\n  Tổng missing values: {total_missing:,}")
     return int(total_missing), missing_counts
-
-
-def fill_missing_values(data: np.ndarray, strategy: str = 'mean') -> np.ndarray:
-
-    data_copy = data.copy()
-    
-    # Lấy view của Rating (memory-efficient)
-    ratings = data_copy['Rating']
-    
-    # Boolean masking - vectorized
-    missing_mask = np.isnan(ratings)
-    
-    if np.any(missing_mask):  # Universal function
-        # Tính fill value bằng universal functions
-        fill_value = np.nanmean(ratings) if strategy == 'mean' else \
-                     np.nanmedian(ratings) if strategy == 'median' else \
-                     float(strategy)
-        
-        # Fancy indexing để điền values
-        ratings[missing_mask] = fill_value
-        print(f" Đã điền {np.sum(missing_mask)} missing values với {strategy}={fill_value:.2f}")
-    
-    return data_copy
-
 
 def validate_data(data: np.ndarray) -> Tuple[np.ndarray, int]:
     print("\n=== KIỂM TRA TÍNH HỢP LỆ ===")
@@ -102,130 +78,104 @@ def validate_data(data: np.ndarray) -> Tuple[np.ndarray, int]:
     return clean_data, removed_count
 
 
-def detect_outliers_iqr(data: np.ndarray, column: str = 'Rating', 
-                        multiplier: float = 1.5) -> np.ndarray:
-    values = data[column]
+def run_validation_checks(data: np.ndarray) -> Dict[str, Any]:
+    """
+    Execute and print all validation checks used in notebook 02.
     
-    # Vectorized percentile calculation
-    Q1, Q3 = np.percentile(values, [25, 75])
-    IQR = Q3 - Q1
-    
-    # Broadcasting operations
-    lower_bound = Q1 - multiplier * IQR
-    upper_bound = Q3 + multiplier * IQR
-    
-    # Vectorized comparison
-    outliers_mask = (values < lower_bound) | (values > upper_bound)
-    num_outliers = np.sum(outliers_mask)
-    
-    print(f"\n=== PHÁT HIỆN OUTLIERS (IQR) - {column} ===")
-    print(f"  Q1 (25%): {Q1:.2f}")
-    print(f"  Q3 (75%): {Q3:.2f}")
-    print(f"  IQR: {IQR:.2f}")
-    print(f"  Lower bound: {lower_bound:.2f}")
-    print(f"  Upper bound: {upper_bound:.2f}")
-    print(f"  Số outliers: {num_outliers:,} ({num_outliers/len(data)*100:.2f}%)")
-    
-    return outliers_mask
+    Returns a dictionary with aggregated statistics for further use.
+    """
+    print("=" * 70)
+    print("BƯỚC 2: KIỂM TRA TÍNH HỢP LỆ DỮ LIỆU")
+    print("=" * 70)
 
+    stats: Dict[str, Any] = {}
 
-def normalize_minmax(values: np.ndarray, feature_range: Tuple[float, float] = (0, 1)) -> np.ndarray:
-    
-    # Broadcasting operations
-    min_val, max_val = np.min(values), np.max(values)
-    
-    if max_val == min_val:
-        return np.full_like(values, feature_range[0], dtype=np.float32)
-    
-    # Vectorized computation với broadcasting
-    normalized = (values - min_val) / (max_val - min_val)
-    
-    target_min, target_max = feature_range
-    # Broadcasting scalar operations
-    scaled = normalized * (target_max - target_min) + target_min
-    
-    return scaled.astype(np.float32)
+    total_missing, missing_counts = check_missing_values(data)
+    stats["missing"] = {"total": total_missing, "per_column": missing_counts}
 
+    ratings = data["Rating"]
+    invalid_ratings = int(np.sum((ratings < 1) | (ratings > 5)))
+    unique_ratings, rating_counts = np.unique(ratings, return_counts=True)
 
-def normalize_log(values: np.ndarray) -> np.ndarray:
-    
-    # Vectorized check và shift nếu cần
-    min_val = np.min(values)
-    shifted_values = np.where(min_val < 0, values - min_val, values)
-    
-    # Universal function log1p
-    return np.log1p(shifted_values).astype(np.float32)
-
-
-def normalize_decimal_scaling(values: np.ndarray):
-    # Vectorized operations
-    max_abs = np.max(np.abs(values))
-    
-    if max_abs == 0:
-        return values.astype(np.float32)
-    
-    # Broadcasting computation
-    d = np.ceil(np.log10(max_abs + 1))
-    divisor = 10 ** d
-    
-    return (values / divisor).astype(np.float32)
-
-
-def standardize_zscore(values: np.ndarray) -> np.ndarray:
-    # Universal functions
-    mean, std = np.mean(values), np.std(values)
-    
-    if std == 0:
-        return (values - mean).astype(np.float32)
-    
-    # Broadcasting operations
-    return ((values - mean) / std).astype(np.float32)
-
-
-def apply_normalization(data: np.ndarray, method: str = 'minmax') -> np.ndarray:
-    
-    print(f"\n=== ÁP DỤNG CHUẨN HÓA: {method.upper()} ===")
-    
-    # Tạo structured array mới
-    new_dtype = data.dtype.descr + [
-        ('Rating_normalized', 'f4'),
-        ('Timestamp_normalized', 'f4')
-    ]
-    
-    processed_data = np.empty(len(data), dtype=new_dtype)
-    
-    # Copy tất cả fields cùng lúc bằng cách gán từng field (vectorized)
-    # Thay vì for loop, dùng list comprehension để tạo operations vectorized
-    for name in data.dtype.names:
-        processed_data[name] = data[name]
-    
-    # Dictionary mapping methods (tránh if-elif chain)
-    normalization_funcs = {
-        'minmax': normalize_minmax,
-        'log': normalize_log,
-        'decimal': normalize_decimal_scaling,
-        'zscore': standardize_zscore
+    print("\n[2.2] KIỂM TRA KHOẢNG GIÁ TRỊ HỢP LỆ")
+    print("-" * 70)
+    print(f"Rating ngoài [1,5]: {invalid_ratings:,}")
+    for val, cnt in zip(unique_ratings, rating_counts):
+        percent = cnt / len(ratings) * 100
+        print(f"  Rating {val:.1f}: {cnt:,} ({percent:.1f}%)")
+    if invalid_ratings == 0:
+        print("\n PASS: Tất cả ratings hợp lệ [1-5]")
+    stats["rating_distribution"] = {
+        "values": unique_ratings.tolist(),
+        "counts": rating_counts.tolist(),
+        "invalid": invalid_ratings,
     }
-    
-    norm_func = normalization_funcs.get(method, normalize_minmax)
-    
-    # Vectorized normalization
-    processed_data['Rating_normalized'] = norm_func(data['Rating'].astype(np.float32))
-    processed_data['Timestamp_normalized'] = norm_func(data['Timestamp'].astype(np.float32))
-    
-    # Broadcasting statistics
-    print(f"  Rating - Original: mean={np.mean(data['Rating']):.2f}, std={np.std(data['Rating']):.2f}")
-    print(f"  Rating - Normalized: mean={np.mean(processed_data['Rating_normalized']):.2f}, "
-          f"std={np.std(processed_data['Rating_normalized']):.2f}")
-    
-    return processed_data
 
+    print("\n[2.3] KIỂM TRA TRÙNG LẶP")
+    print("-" * 70)
+    users = data["UserId"]
+    items = data["ProductId"]
+    unique_users = np.unique(users).size
+    unique_items = np.unique(items).size
+    sparsity = 1 - len(data) / (unique_users * unique_items)
+    print(f"Users duy nhất: {unique_users:,}")
+    print(f"Products duy nhất: {unique_items:,}")
+    print(f"Sparsity: {sparsity*100:.2f}%")
+
+    user_product_pairs = data[["UserId", "ProductId"]]
+    unique_pairs = np.unique(user_product_pairs).size
+    duplicate_pairs = len(data) - unique_pairs
+    dup_percent = duplicate_pairs / len(data) * 100
+    print(f"\nCặp (user,product) trùng: {duplicate_pairs:,} ({dup_percent:.2f}%)")
+    if duplicate_pairs > 0:
+        print(" Giữ nguyên: temporal reviews hợp lệ")
+
+    stats["uniqueness"] = {
+        "unique_users": unique_users,
+        "unique_items": unique_items,
+        "sparsity": sparsity,
+        "duplicate_pairs": duplicate_pairs,
+    }
+    return stats
+
+
+def run_outlier_checks(data: np.ndarray) -> Dict[str, Any]:
+    print("=" * 70)
+    print("BƯỚC 3: PHÁT HIỆN GIÁ TRỊ BẤT THƯỜNG")
+    print("=" * 70)
+
+    report: Dict[str, Any] = {}
+
+    def _analyze_counts(values: np.ndarray, label: str) -> Dict[str, Any]:
+        _, counts = np.unique(values, return_counts=True)
+        q1, q3 = np.percentile(counts, [25, 75])
+        iqr = q3 - q1
+        upper_bound = q3 + 1.5 * iqr
+        outliers = int(np.sum(counts > upper_bound))
+        stats = {
+            "min": int(counts.min()),
+            "max": int(counts.max()),
+            "mean": float(counts.mean()),
+            "median": float(np.median(counts)),
+            "iqr_threshold": float(upper_bound),
+            "outliers": outliers,
+            "outlier_percent": outliers / counts.size * 100,
+        }
+        print(f"\n[{label}]")
+        print("-" * 70)
+        print(f"Ratings/{label.lower()} - Min: {stats['min']:,}, Max: {stats['max']:,}")
+        print(f"Ratings/{label.lower()} - Mean: {stats['mean']:.1f}, Median: {stats['median']:.0f}")
+        print(f"\nOutlier threshold (IQR): {stats['iqr_threshold']:.0f}")
+        print(f"{label} vượt ngưỡng: {stats['outliers']:,} ({stats['outlier_percent']:.1f}%)")
+        return stats
+
+    report["user_behavior"] = _analyze_counts(data["UserId"], "USER BEHAVIOR OUTLIERS")
+    print("\n Giữ nguyên: Power users có giá trị cho CF")
+    report["product_popularity"] = _analyze_counts(data["ProductId"], "PRODUCT POPULARITY OUTLIERS")
+    print("\n Giữ nguyên: Popular products có giá trị cho recommendation")
+    return report
 
 def save_processed_data(data: np.ndarray, output_path: str):
-    """
-    Save processed data as .npz (compressed) format only.
-    Removes any existing .npy file with the same name.
-    """
     print(f"\n=== LƯU DỮ LIỆU ===")
     
     # Ensure directory exists
@@ -234,10 +184,10 @@ def save_processed_data(data: np.ndarray, output_path: str):
         os.makedirs(output_dir, exist_ok=True)
         print(f"  Created directory: {output_dir}")
     
-    # Save as .npz only (compressed format)
+    # Save as .npz only 
     full_path = f"{output_path}.npz"
     
-    # Remove old .npy file if exists (to avoid confusion)
+    # Remove old .npy file if exists
     old_npy_path = f"{output_path}.npy"
     if os.path.exists(old_npy_path):
         try:

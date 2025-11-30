@@ -1,9 +1,4 @@
-"""
-Pure NumPy Matrix Factorization for Collaborative Filtering.
-
-Implements SVD-based recommendation system without using external ML libraries.
-"""
-from __future__ import annotations
+from __future__ import annotations # để tương thích phiên bản Python rộng hơn
 
 import csv
 import os
@@ -563,7 +558,7 @@ def train_numpy_mf_pipeline(
     Training pipeline for NumPy MF model.
     
     Args:
-        csv_path: Path to ratings CSV file
+        csv_path: Path to ratings CSV file (optional)
         test_ratio: Fraction of users for test set
         config: Model hyperparameters
         user_feature_npz: Optional user features
